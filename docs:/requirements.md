@@ -45,6 +45,25 @@ As a club officer, I want to create events and see who is attending.
 As an officer, I want to scan tickets at the door.
 - WHEN a QR code is scanned, THE system SHALL mark the ticket as used and reject any later scans of it.
 
+## Scope for HW3
+
+HW3 implements **Story 4: Waitlist** as a prototype with these clarified behaviors:
+
+- A student supplies a made-up name in a text box as their demo identity. This is not real authentication.
+- Joining is allowed only while the event is sold out.
+- Waitlist order is first-in, first-out.
+- The same demo identity cannot join the same event more than once.
+- A clearly labeled **Simulate seat release** control releases one seat.
+- The next person in line receives an in-app notification and a 30-minute hold for that seat. Claiming a ticket is outside this homework scope.
+- When a hold expires, the seat is offered to the next person waiting. If nobody is waiting, the seat returns to available inventory.
+- Waitlist and hold state stays in server memory. It may reset on restart or deployment and is not reliable across multiple server instances.
+
+Homework constraints:
+
+1. No real payments.
+2. No sign-in provider.
+3. No database or email service.
+
 ## 4. Data Model
 - `users(user_id, email, name, role)`
 - `events(event_id, club_id, title, starts_at, location, price_cents, capacity, status)`

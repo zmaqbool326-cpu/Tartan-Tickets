@@ -1,4 +1,6 @@
 import { getEventActionLabel, getUpcomingEvents } from "../lib/events.js";
+import { joinWaitlistAction, simulateSeatReleaseAction } from "./actions.js";
+import { getWaitlistService } from "../lib/waitlist.js";
 
 export const dynamic = "force-dynamic";
 
@@ -15,8 +17,13 @@ const priceFormatter = new Intl.NumberFormat("en-US", {
   currency: "USD",
 });
 
-export default function HomePage() {
+export default async function HomePage({ searchParams }) {
   const events = getUpcomingEvents();
+  const params = await searchParams;
+  const identity = typeof params?.identity === "string" ? params.identity : "";
+  const notice = typeof params?.notice === "string" ? params.notice : "";
+  const waitlistService = getWaitlistService();
+  const notifications = identity ? waitlistService.getNotifications(identity) : [];
 
   return (
     <main className="page-shell">
@@ -52,8 +59,10 @@ export default function HomePage() {
         ) : (
           <div className="event-grid">
             {events.map((event) => {
-              const soldOut = event.seatsRemaining === 0;
-              const actionLabel = getEventActionLabel(event);
+              const state = waitlistService.getEventState(event.id);
+              const currentEvent = { ...event, seatsRemaining: state.seatsRemaining };
+              const soldOut = state.seatsRemaining === 0;
+              const actionLabel = getEventActionLabel(currentEvent);
 
               return (
                 <article className="event-card" key={event.id}>
@@ -83,15 +92,64 @@ export default function HomePage() {
                         <div>
                           <dt>Seats remaining</dt>
                           <dd className={soldOut ? "sold-out-text" : ""}>
-                            {event.seatsRemaining}
+                            {state.seatsRemaining}
                           </dd>
                         </div>
                       </div>
                     </dl>
-                    <button className="event-action" type="button" disabled>
-                      {actionLabel}
-                      <span aria-hidden="true">{soldOut ? "+" : "↗"}</span>
-                    </button>
+                    {soldOut ? (
+                      <form className="waitlist-form" action={joinWaitlistAction}>
+                        <label htmlFor={`demo-name-${event.id}`}>Demo name</label>
+                        <input
+                          id={`demo-name-${event.id}`}
+                          name="demoName"
+                          type="text"
+                          autoComplete="off"
+                          maxLength={60}
+                          defaultValue={identity}
+                          required
+                        />
+                        <input type="hidden" name="eventId" value={event.id} />
+                        <button className="event-action" type="submit">
+                          {actionLabel}
+                          <span aria-hidden="true">+</span>
+                        </button>
+                      </form>
+                    ) : (
+                      <button className="event-action" type="button" disabled>
+                        {actionLabel}
+                        <span aria-hidden="true">↗</span>
+                      </button>
+                    )}
+                    {state.waitlist.length > 0 && (
+                      <div className="waitlist-status">
+                        <strong>Waitlist</strong>
+                        <ol>
+                          {state.waitlist.map((entry) => (
+                            <li key={`${event.id}-${entry.demoName}`}>{entry.demoName}</li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
+                    {state.activeHold && (
+                      <p className="hold-status" role="status">
+                        Seat held for {state.activeHold.demoName} until{" "}
+                        {state.activeHold.expiresAt.toLocaleTimeString("en-US", {
+                          hour: "numeric",
+                          minute: "2-digit",
+                          timeZone: "UTC",
+                        })} UTC.
+                      </p>
+                    )}
+                    {state.releasableSeats > 0 && !state.activeHold && (
+                      <form className="release-form" action={simulateSeatReleaseAction}>
+                        <input type="hidden" name="eventId" value={event.id} />
+                        <input type="hidden" name="demoName" value={identity} />
+                        <button className="simulate-release" type="submit">
+                          Simulate seat release
+                        </button>
+                      </form>
+                    )}
                   </div>
                 </article>
               );
@@ -100,11 +158,34 @@ export default function HomePage() {
         )}
       </section>
 
+      {(notice || notifications.length > 0) && (
+        <section className="waitlist-feedback" aria-label="Waitlist updates" aria-live="polite">
+          {notice && <p role="status">{notice}</p>}
+          {notifications.map((notification, index) => (
+            <p role="status" key={`${notification.eventId}-${index}`}>{notification.message}</p>
+          ))}
+        </section>
+      )}
+
+      <form className="notification-lookup" method="get">
+        <label htmlFor="notification-identity">Check notifications for a demo name</label>
+        <input
+          id="notification-identity"
+          name="identity"
+          type="text"
+          autoComplete="off"
+          maxLength={60}
+          defaultValue={identity}
+          required
+        />
+        <button type="submit">Check notifications</button>
+      </form>
+
       <aside className="prototype-notice" aria-label="Prototype limitation">
         <span className="notice-icon" aria-hidden="true">i</span>
         <p>
-          <strong>Browsing preview</strong>
-          <span>Purchases and waitlist sign-ups aren’t available in this prototype.</span>
+          <strong>Homework prototype</strong>
+          <span>Waitlist is simulated in server memory. Purchases are unavailable.</span>
         </p>
       </aside>
 

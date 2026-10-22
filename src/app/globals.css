@@ -285,6 +285,134 @@ h3 {
   font-size: 15px;
 }
 
+.waitlist-form {
+  display: grid;
+  gap: 8px;
+}
+
+.waitlist-form label {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.waitlist-form input[type="text"] {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 11px;
+  border: 1px solid #cbd5cc;
+  border-radius: 7px;
+  background: white;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+}
+
+.waitlist-form input[type="text"]:focus-visible,
+.simulate-release:focus-visible,
+.event-action:focus-visible {
+  outline: 3px solid #8aa998;
+  outline-offset: 2px;
+}
+
+.waitlist-status,
+.hold-status {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f1f5f1;
+  color: var(--ink);
+  font-size: 11px;
+}
+
+.waitlist-status strong {
+  font-size: 11px;
+}
+
+.waitlist-status ol {
+  display: grid;
+  gap: 4px;
+  margin: 7px 0 0;
+  padding-left: 19px;
+}
+
+.hold-status {
+  line-height: 1.5;
+}
+
+.release-form {
+  margin-top: 12px;
+}
+
+.simulate-release {
+  width: 100%;
+  min-height: 36px;
+  border: 1px solid #b9c9be;
+  border-radius: 7px;
+  background: #f8faf8;
+  color: var(--accent-dark);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.simulate-release:hover {
+  background: #edf3ef;
+}
+
+.waitlist-feedback {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.waitlist-feedback p {
+  margin: 0;
+  padding: 12px 15px;
+  border: 1px solid #c9d9ce;
+  border-radius: 8px;
+  background: #eef5f0;
+  color: #254b37;
+  font-size: 12px;
+}
+
+.notification-lookup {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.notification-lookup label {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.notification-lookup input {
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid #cbd5cc;
+  border-radius: 7px;
+  background: white;
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+}
+
+.notification-lookup button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid #b9c9be;
+  border-radius: 7px;
+  background: #f8faf8;
+  color: var(--accent-dark);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+}
+
 .empty-state {
   padding: 48px 24px;
   border: 1px dashed #cbd5cc;
@@ -365,6 +493,10 @@ h3 {
   }
 
   .event-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .notification-lookup {
     grid-template-columns: 1fr;
   }
 

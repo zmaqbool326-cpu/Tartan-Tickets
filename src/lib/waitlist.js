@@ -93,13 +93,16 @@ export function createWaitlistService({ events, now = () => new Date() }) {
     },
 
     joinWaitlist({ eventId, demoName }) {
-      const state = requireEvent(eventId);
-      processExpiredHold(state);
-
       const name = typeof demoName === "string" ? demoName.trim() : "";
       if (!name) {
         throw new WaitlistError("Enter a demo name.");
       }
+      if (name.length > 80) {
+        throw new WaitlistError("Demo names must be 80 characters or fewer.");
+      }
+
+      const state = requireEvent(eventId);
+      processExpiredHold(state);
       if (state.seatsRemaining > 0) {
         throw new WaitlistError("This event is not sold out; waitlist sign-up is available only for sold-out events.");
       }

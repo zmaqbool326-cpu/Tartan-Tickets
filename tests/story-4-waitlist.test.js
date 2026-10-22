@@ -77,6 +77,53 @@ test("Story 4: a demo identity cannot join the same event twice", async () => {
   assert.equal(service.getWaitlist(event.id).length, 1);
 });
 
+test("Story 4: server rejects demo names longer than 80 characters before changing waitlist state", async () => {
+  const { service } = await createFixture();
+
+  assert.throws(
+    () => service.joinWaitlist({ eventId: event.id, demoName: "A".repeat(81) }),
+    /80 characters/i,
+  );
+  assert.deepEqual(service.getWaitlist(event.id), []);
+});
+
+test("SEC-23: server accepts a demo name exactly 80 characters long", async () => {
+  const { service } = await createFixture();
+  const demoName = "A".repeat(80);
+
+  const entry = service.joinWaitlist({ eventId: event.id, demoName });
+
+  assert.equal(entry.demoName, demoName);
+  assert.deepEqual(service.getWaitlist(event.id).map((waitlistEntry) => waitlistEntry.demoName), [
+    demoName,
+  ]);
+});
+
+test("SEC-23: an overlong name is rejected before expired-hold processing", async () => {
+  let currentTime = new Date("2026-10-22T12:00:00.000Z");
+  let clockReads = 0;
+  const { createWaitlistService } = await import("../src/lib/waitlist.js");
+  const service = createWaitlistService({
+    events: [{ ...event }],
+    now: () => {
+      clockReads += 1;
+      return new Date(currentTime);
+    },
+  });
+  service.joinWaitlist({ eventId: event.id, demoName: "First" });
+  service.joinWaitlist({ eventId: event.id, demoName: "Second" });
+  service.simulateSeatRelease(event.id);
+
+  currentTime = new Date("2026-10-22T12:30:00.000Z");
+  const clockReadsBeforeInvalidJoin = clockReads;
+
+  assert.throws(
+    () => service.joinWaitlist({ eventId: event.id, demoName: "A".repeat(81) }),
+    /80 characters/i,
+  );
+  assert.equal(clockReads, clockReadsBeforeInvalidJoin);
+});
+
 test("Story 4: simulated seat release notifies the next person in-app", async () => {
   const { service } = await createFixture();
   service.joinWaitlist({ eventId: event.id, demoName: "Jordan" });
